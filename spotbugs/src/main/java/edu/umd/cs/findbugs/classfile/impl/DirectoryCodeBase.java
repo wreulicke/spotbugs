@@ -22,6 +22,8 @@ package edu.umd.cs.findbugs.classfile.impl;
 import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.umd.cs.findbugs.RecursiveFileSearch;
 import edu.umd.cs.findbugs.classfile.ICodeBaseEntry;
@@ -75,6 +77,8 @@ public class DirectoryCodeBase extends AbstractScannableCodeBase {
     private RecursiveFileSearch rfs;
 
     private boolean searchPerformed;
+    
+    private Map<String, DirectoryCodeBaseEntry> cache = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
@@ -140,13 +144,14 @@ public class DirectoryCodeBase extends AbstractScannableCodeBase {
         // Translate resource name, in case a resource name
         // has been overridden and the resource is being accessed
         // using the overridden name.
-        resourceName = translateResourceName(resourceName);
-
-        File file = getFullPathOfResource(resourceName);
-        if (!file.exists()) {
-            return null;
-        }
-        return new DirectoryCodeBaseEntry(this, resourceName);
+        String name = translateResourceName(resourceName);
+        return cache.computeIfAbsent(name, s -> {
+            File file = getFullPathOfResource(name);
+            if (!file.exists()) {
+                return null;
+            }
+            return new DirectoryCodeBaseEntry(this, name);
+        });
     }
 
     InputStream openFile(String resourceName) throws FileNotFoundException, IOException {
