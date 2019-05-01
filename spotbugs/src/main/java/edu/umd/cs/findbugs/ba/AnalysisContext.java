@@ -966,30 +966,6 @@ public class AnalysisContext implements AutoCloseable {
 
     public void setAppClassList(List<ClassDescriptor> appClassCollection) {
         // FIXME: we really should drive the progress callback here
-        HashSet<ClassDescriptor> appSet = new HashSet<>(appClassCollection);
-
-        Collection<ClassDescriptor> allClassDescriptors = new ArrayList<>(DescriptorFactory.instance()
-                .getAllClassDescriptors());
-        for (ClassDescriptor appClass : allClassDescriptors) {
-            try {
-                XClass xclass = currentXFactory().getXClass(appClass);
-
-                if (xclass == null) {
-                    continue;
-                }
-
-                // Add the application class to the database
-                if (appSet.contains(appClass)) {
-                    getSubtypes2().addApplicationClass(xclass);
-                } else if (xclass instanceof ClassInfo) {
-                    getSubtypes2().addClass(xclass);
-                }
-
-            } catch (Exception e) {
-                AnalysisContext.logError("Unable to get XClass for " + appClass, e);
-            }
-        }
-
         if (true && Subtypes2.DEBUG) {
             System.out.println(getSubtypes2().getGraph().getNumVertices() + " vertices in inheritance graph");
         }

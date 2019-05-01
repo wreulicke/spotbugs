@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -111,8 +110,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
     private IClassPath classPath;
 
     private List<ClassDescriptor> appClassList;
-
-    private Collection<ClassDescriptor> referencedClassSet;
 
     private DetectorFactoryCollection detectorFactoryCollection;
 
@@ -334,9 +331,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
         }
         if (classObserverList != null) {
             classObserverList.clear();
-        }
-        if (referencedClassSet != null) {
-            referencedClassSet.clear();
         }
         analysisOptions.analysisFeatureSettingList = null;
         bugReporter = null;
@@ -707,7 +701,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
         if (PROGRESS) {
             System.out.println("Adding referenced classes");
         }
-        Set<String> referencedPackageSet = new HashSet<>();
 
         LinkedList<ClassDescriptor> workList = new LinkedList<>();
         workList.addAll(appClassList);
@@ -716,9 +709,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
         Set<ClassDescriptor> appClassSet = new HashSet<>(appClassList);
 
         Set<ClassDescriptor> badAppClassSet = new HashSet<>();
-        HashSet<ClassDescriptor> knownDescriptors = new HashSet<>(DescriptorFactory.instance()
-                .getAllClassDescriptors());
-        int count = 0;
         Set<ClassDescriptor> addedToWorkList = new HashSet<>(appClassList);
 
         // add fields
@@ -758,15 +748,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
                 continue;
             }
             seen.add(classDesc);
-
-            if (!knownDescriptors.contains(classDesc)) {
-                count++;
-                if (PROGRESS && count % 5000 == 0) {
-                    System.out.println("Adding referenced class " + classDesc);
-                }
-            }
-
-            referencedPackageSet.add(classDesc.getPackageName());
 
             // Get list of referenced classes and add them to set.
             // Add superclasses and superinterfaces to worklist.
@@ -812,22 +793,6 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
         // Delete any application classes that could not be read
         appClassList.removeAll(badAppClassSet);
         DescriptorFactory.instance().purge(badAppClassSet);
-
-        for (ClassDescriptor d : DescriptorFactory.instance().getAllClassDescriptors()) {
-            referencedPackageSet.add(d.getPackageName());
-        }
-        referencedClassSet = new ArrayList<>(DescriptorFactory.instance().getAllClassDescriptors());
-
-        // Based on referenced packages, add any resolvable package-info classes
-        // to the set of referenced classes.
-        if (PROGRESS) {
-            referencedPackageSet.remove("");
-            System.out.println("Added " + count + " referenced classes");
-            System.out.println("Total of " + referencedPackageSet.size() + " packages");
-            for (ClassDescriptor d : referencedClassSet) {
-                System.out.println("  " + d);
-            }
-        }
     }
 
     public List<ClassDescriptor> sortByCallGraph(Collection<ClassDescriptor> classList, OutEdges<ClassDescriptor> outEdges) {
@@ -955,38 +920,13 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
             if (executionPlan.getNumPasses() == 0) {
                 throw new AssertionError("no analysis passes");
             }
-            int[] classesPerPass = new int[executionPlan.getNumPasses()];
-            classesPerPass[0] = referencedClassSet.size();
-            for (int i = 0; i < classesPerPass.length; i++) {
-                classesPerPass[i] = i == 0 ? referencedClassSet.size() : appClassList.size();
-            }
-            progressReporter.predictPassCount(classesPerPass);
-            XFactory factory = AnalysisContext.currentXFactory();
-            Collection<ClassDescriptor> badClasses = new LinkedList<>();
-            for (ClassDescriptor desc : referencedClassSet) {
-                try {
-                    XClass info = Global.getAnalysisCache().getClassAnalysis(XClass.class, desc);
-                    factory.intern(info);
-                } catch (CheckedAnalysisException e) {
-                    AnalysisContext.logError("Couldn't get class info for " + desc, e);
-                    badClasses.add(desc);
-                } catch (RuntimeException e) {
-                    AnalysisContext.logError("Couldn't get class info for " + desc, e);
-                    badClasses.add(desc);
-                }
-            }
-            if (!badClasses.isEmpty()) {
-                referencedClassSet = new LinkedHashSet<>(referencedClassSet);
-                referencedClassSet.removeAll(badClasses);
-            }
-
             long startTime = System.currentTimeMillis();
-            bugReporter.getProjectStats().setReferencedClasses(referencedClassSet.size());
+            bugReporter.getProjectStats().setReferencedClasses(0);
             for (Iterator<AnalysisPass> passIterator = executionPlan.passIterator(); passIterator.hasNext();) {
                 AnalysisPass pass = passIterator.next();
                 // The first pass is generally a non-reporting pass which
                 // gathers information about referenced classes.
-                boolean isNonReportingFirstPass = multiplePasses && passCount == 0;
+                boolean isNonReportingFirstPass = multiplePasses;
 
                 // Instantiate the detectors
                 Detector2[] detectorList = pass.instantiateDetector2sInPass(bugReporter);
@@ -996,7 +936,7 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
                 // application classes.
                 // On subsequent passes, we apply detector only to application
                 // classes.
-                Collection<ClassDescriptor> classCollection = (isNonReportingFirstPass) ? referencedClassSet : appClassList;
+                Collection<ClassDescriptor> classCollection = appClassList;
                 AnalysisContext.currentXFactory().canonicalizeAll();
                 if (PROGRESS || LIST_ORDER) {
                     System.out.printf("%6d : Pass %d: %d classes%n", (System.currentTimeMillis() - startTime)/1000, passCount,  classCollection.size());

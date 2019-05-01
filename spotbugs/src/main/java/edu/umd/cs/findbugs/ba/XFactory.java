@@ -89,11 +89,6 @@ public class XFactory {
 
     public void canonicalizeAll() {
         DescriptorFactory descriptorFactory = DescriptorFactory.instance();
-        for (XMethod m : methods.values()) {
-            if (m instanceof MethodDescriptor) {
-                descriptorFactory.canonicalize((MethodDescriptor) m);
-            }
-        }
         for (XField f : fields.values()) {
             if (f instanceof FieldDescriptor) {
                 descriptorFactory.canonicalize((FieldDescriptor) f);
@@ -333,8 +328,6 @@ public class XFactory {
         }
         m = xFactory.resolveXMethod(desc);
         if (m instanceof MethodDescriptor) {
-            xFactory.methods.put((MethodDescriptor) m, m);
-            DescriptorFactory.instance().canonicalize((MethodDescriptor) m);
         } else {
             xFactory.methods.put(desc, m);
         }
@@ -350,8 +343,6 @@ public class XFactory {
             }
         }
         System.out.printf("XFactory cached methods: %d/%d%n", count, xFactory.methods.size());
-        DescriptorFactory.instance().profile();
-
     }
 
     private XMethod resolveXMethod(MethodDescriptor originalDescriptor) {

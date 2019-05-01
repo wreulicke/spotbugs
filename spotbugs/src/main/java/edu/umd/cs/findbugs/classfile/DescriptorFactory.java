@@ -52,20 +52,11 @@ public class DescriptorFactory {
         }
     };
 
-    private final Map<String, ClassDescriptor> classDescriptorMap;
-
-    private final Map<String, ClassDescriptor> dottedClassDescriptorMap;
-
-    private final Map<MethodDescriptor, MethodDescriptor> methodDescriptorMap;
-
     private final Map<FieldDescriptor, FieldDescriptor> fieldDescriptorMap;
 
     private static final ClassDescriptor MODULE_INFO = new ClassDescriptor("module-info");
 
     private DescriptorFactory() {
-        this.classDescriptorMap = new HashMap<>();
-        this.dottedClassDescriptorMap = new HashMap<>();
-        this.methodDescriptorMap = new HashMap<>();
         this.fieldDescriptorMap = new HashMap<>();
     }
 
@@ -94,15 +85,7 @@ public class DescriptorFactory {
         instanceThreadLocal.remove();
     }
 
-    public Collection<ClassDescriptor> getAllClassDescriptors() {
-        return classDescriptorMap.values();
-    }
-
     public void purge(Collection<ClassDescriptor> unusable) {
-        for (ClassDescriptor c : unusable) {
-            classDescriptorMap.remove(c.getClassName());
-            dottedClassDescriptorMap.remove(c.getClassName().replace('/', '.'));
-        }
     }
 
     public @Nonnull
@@ -120,17 +103,13 @@ public class DescriptorFactory {
     public @Nonnull
     ClassDescriptor getClassDescriptor(@SlashedClassName String className) {
         assert className.indexOf('.') == -1;
-        ClassDescriptor classDescriptor = classDescriptorMap.get(className);
-        if (classDescriptor == null) {
-            if (MODULE_INFO.getClassName().equals(className)) {
-                // don't allow module info to be added to the map,
-                // which could be used to check referenced classes
-                return MODULE_INFO;
-            }
-            classDescriptor = new ClassDescriptor(className);
-            classDescriptorMap.put(className, classDescriptor);
+        if (MODULE_INFO.getClassName().equals(className)) {
+            // don't allow module info to be added to the map,
+            // which could be used to check referenced classes
+            return MODULE_INFO;
         }
-        return classDescriptor;
+        
+        return new ClassDescriptor(className);
     }
 
     /**
@@ -142,12 +121,7 @@ public class DescriptorFactory {
      */
     public ClassDescriptor getClassDescriptorForDottedClassName(@DottedClassName String dottedClassName) {
         assert dottedClassName != null;
-        ClassDescriptor classDescriptor = dottedClassDescriptorMap.get(dottedClassName);
-        if (classDescriptor == null) {
-            classDescriptor = getClassDescriptor(dottedClassName.replace('.', '/'));
-            dottedClassDescriptorMap.put(dottedClassName, classDescriptor);
-        }
-        return classDescriptor;
+        return getClassDescriptor(dottedClassName.replace('.', '/'));
     }
 
     public MethodDescriptor getMethodDescriptor(JavaClass jClass, Method method) {
@@ -174,39 +148,7 @@ public class DescriptorFactory {
         if (className == null) {
             throw new NullPointerException("className must be nonnull");
         }
-        MethodDescriptor methodDescriptor = new MethodDescriptor(className, name, signature, isStatic);
-        MethodDescriptor existing = methodDescriptorMap.get(methodDescriptor);
-        if (existing == null) {
-            methodDescriptorMap.put(methodDescriptor, methodDescriptor);
-            existing = methodDescriptor;
-        }
-        return existing;
-    }
-
-    public void profile() {
-        int total = 0;
-        int keys = 0;
-        int values = 0;
-        int bad = 0;
-        for (Map.Entry<MethodDescriptor, MethodDescriptor> e : methodDescriptorMap.entrySet()) {
-            total++;
-            if (e.getKey() instanceof MethodInfo) {
-                keys++;
-            }
-            if (e.getValue() instanceof MethodInfo) {
-                values++;
-            }
-        }
-        System.out.printf("Descriptor factory: %d/%d/%d%n", keys, values, total);
-
-    }
-
-    public void canonicalize(MethodDescriptor m) {
-        MethodDescriptor existing = methodDescriptorMap.get(m);
-        if (m != existing) {
-            methodDescriptorMap.put(m, m);
-        }
-
+        return new MethodDescriptor(className, name, signature, isStatic);
     }
 
     public void canonicalize(FieldDescriptor m) {
