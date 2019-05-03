@@ -406,9 +406,7 @@ public class Util {
     }
 
     public static IOException makeIOException(String msg, Throwable cause) {
-        IOException e = new IOException(msg);
-        e.initCause(cause);
-        return e;
+        return new IOException(msg);
     }
     private static String getFileExtension(String name) {
         int lastDot = name.lastIndexOf('.');
@@ -431,9 +429,7 @@ public class Util {
     }
 
     public static void throwIOException(String msg, Throwable cause) throws IOException {
-        IOException e = new IOException(msg);
-        e.initCause(cause);
-        throw e;
+        throw new IOException(msg);
     }
 
     /**

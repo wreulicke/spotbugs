@@ -379,9 +379,7 @@ public class AnalysisCache implements IAnalysisCache {
             assert analysisClass.isInstance(analysisObject);
             classContext.putMethodAnalysis(analysisClass, methodDescriptor, analysisObject);
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("Unexpected exception adding method analysis to cache");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("Unexpected exception adding method analysis to cache", e);
         }
 
     }
@@ -393,9 +391,7 @@ public class AnalysisCache implements IAnalysisCache {
             ClassContext classContext = getClassAnalysis(ClassContext.class, methodDescriptor.getClassDescriptor());
             classContext.purgeMethodAnalyses(methodDescriptor);
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("Unexpected exception purging method analyses from cache");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("Unexpected exception purging method analyses from cache", e);
         }
     }
 

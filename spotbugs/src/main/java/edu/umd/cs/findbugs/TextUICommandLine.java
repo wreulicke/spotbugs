@@ -608,9 +608,7 @@ public class TextUICommandLine extends FindBugsCommandLine {
             try {
                 bugs.readXML(redoAnalysisFile);
             } catch (DocumentException e) {
-                IOException ioe = new IOException("Unable to parse " + redoAnalysisFile);
-                ioe.initCause(e);
-                throw ioe;
+                throw new IOException("Unable to parse " + redoAnalysisFile, e);
             }
             project = bugs.getProject().duplicate();
         }

@@ -278,9 +278,7 @@ public class SortedBugCollection implements BugCollection {
     }
 
     private static IOException newIOException(Object file, IOException e) {
-        IOException result = new IOException("Failing reading " + file);
-        result.initCause(e);
-        return result;
+        return new IOException("Failing reading " + file, e);
     }
 
     public void readXML(URL u) throws IOException, DocumentException {
@@ -1050,9 +1048,7 @@ public class SortedBugCollection implements BugCollection {
                 stats.transformSummaryToHTML(writer);
                 summaryHTML = writer.toString();
             } catch (final TransformerException e) {
-                IOException ioe = new IOException("Couldn't generate summary HTML");
-                ioe.initCause(e);
-                throw ioe;
+                throw new IOException("Couldn't generate summary HTML", e);
             }
         }
         return summaryHTML;

@@ -87,9 +87,7 @@ public class URLClassPath implements AutoCloseable, Serializable {
             try {
                 zipFile = new ZipFile(fileName);
             } catch (IOException e) {
-                IOException ioe = new IOException("Could not open archive file " + fileName);
-                ioe.initCause(e);
-                throw ioe;
+                throw new IOException("Could not open archive file " + fileName, e);
             }
         }
 

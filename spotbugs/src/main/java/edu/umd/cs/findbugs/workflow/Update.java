@@ -517,15 +517,13 @@ public class Update {
 
                 origCollection = mergeCollections(origCollection, newCollection, true, false);
             } catch (IOException e) {
-                IOException e2 = new IOException("Error parsing " + newFilename);
-                e2.initCause(e);
+                IOException e2 = new IOException("Error parsing " + newFilename, e);
                 if (verbose) {
                     e2.printStackTrace();
                 }
                 throw e2;
             } catch (DocumentException e) {
-                DocumentException e2 = new DocumentException("Error parsing " + newFilename);
-                e2.initCause(e);
+                DocumentException e2 = new DocumentException("Error parsing " + newFilename, e);
                 if (verbose) {
                     e2.printStackTrace();
                 }

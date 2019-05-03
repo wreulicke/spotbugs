@@ -972,9 +972,7 @@ public class ClassContext {
         try {
             return getMethodAnalysis(analysisClass, method);
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("should not happen");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("should not happen", e);
         }
     }
 
@@ -985,9 +983,7 @@ public class ClassContext {
         } catch (CFGBuilderException e) {
             throw e;
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("should not happen");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("should not happen", e);
         }
 
     }
@@ -1007,9 +1003,7 @@ public class ClassContext {
                 throw (CFGBuilderException) cause;
             }
             String message = "Should not happen: bad CAE: " + e.getClass().getName() + " for " + analysisClass.getName() + " of " + method;
-            IllegalStateException ise = new IllegalStateException(message);
-            ise.initCause(e);
-            throw ise;
+            throw  new IllegalStateException(message, e);
         }
     }
 
@@ -1022,9 +1016,7 @@ public class ClassContext {
         try {
             return getClassAnalysis(analysisClass);
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("should not happen");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("should not happen", e);
         }
     }
 

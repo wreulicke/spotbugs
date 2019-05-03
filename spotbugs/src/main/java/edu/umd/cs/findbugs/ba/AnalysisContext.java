@@ -864,9 +864,7 @@ public class AnalysisContext implements AutoCloseable {
         try {
             return Global.getAnalysisCache().getClassAnalysis(ClassContext.class, classDescriptor);
         } catch (CheckedAnalysisException e) {
-            IllegalStateException ise = new IllegalStateException("Could not get ClassContext for JavaClass");
-            ise.initCause(e);
-            throw ise;
+            throw new IllegalStateException("Could not get ClassContext for JavaClass", e);
         }
     }
 

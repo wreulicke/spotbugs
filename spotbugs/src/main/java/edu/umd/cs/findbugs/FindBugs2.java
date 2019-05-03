@@ -280,9 +280,7 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
                 // Analyze the application
                 analyzeApplication();
             } catch (CheckedAnalysisException e) {
-                IOException ioe = new IOException("IOException while scanning codebases");
-                ioe.initCause(e);
-                throw ioe;
+                throw  new IOException("IOException while scanning codebases", e);
             } catch (OutOfMemoryError e) {
                 System.err.println("Out of memory");
                 System.err.println("Total memory: " + Runtime.getRuntime().maxMemory() / 1000000 + "M");
@@ -629,16 +627,9 @@ public class FindBugs2 implements IFindBugsEngine, AutoCloseable {
                 try {
                     IAnalysisEngineRegistrar engineRegistrar = engineRegistrarClass.newInstance();
                     engineRegistrar.registerAnalysisEngines(analysisCache);
-                } catch (InstantiationException e) {
-                    IOException ioe = new IOException("Could not create analysis engine registrar for plugin "
-                            + plugin.getPluginId());
-                    ioe.initCause(e);
-                    throw ioe;
-                } catch (IllegalAccessException e) {
-                    IOException ioe = new IOException("Could not create analysis engine registrar for plugin "
-                            + plugin.getPluginId());
-                    ioe.initCause(e);
-                    throw ioe;
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new IOException("Could not create analysis engine registrar for plugin "
+                            + plugin.getPluginId(), e);
                 }
             }
         }
