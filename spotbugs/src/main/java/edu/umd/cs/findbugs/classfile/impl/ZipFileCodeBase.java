@@ -73,9 +73,7 @@ public class ZipFileCodeBase extends AbstractScannableCodeBase {
                 throw new IOException("Zip file is empty: " + file);
             }
             if (!(e instanceof ZipException)) {
-                IOException ioException = new IOException("Error opening zip file " + file + " of " + file.length() + " bytes");
-                ioException.initCause(e);
-                throw ioException;
+                throw new IOException("Error opening zip file " + file + " of " + file.length() + " bytes");
             }
             int magicBytes;
             try (DataInputStream in = new DataInputStream(new FileInputStream(file))){
